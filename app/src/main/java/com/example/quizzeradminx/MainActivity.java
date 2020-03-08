@@ -3,6 +3,7 @@ package com.example.quizzeradminx;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -31,10 +32,14 @@ public class MainActivity extends AppCompatActivity {
         loginButton=findViewById(R.id.loginBtnId);
         loginProgressBar=findViewById(R.id.loginProgressBarId);
 
+
+        final Intent categoryIntent=new Intent(getApplicationContext(),CategoryActivity.class);
         firebaseAuth=FirebaseAuth.getInstance();
         if(firebaseAuth.getCurrentUser()!=null)
         {
             ///category intent
+            startActivity(categoryIntent);
+            finish();
             return;
         }
         loginButton.setOnClickListener(new View.OnClickListener() {
@@ -61,7 +66,9 @@ public class MainActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful())
                         {
-                            Toast.makeText(getApplicationContext(),"done",Toast.LENGTH_LONG).show();
+                            ///category intent
+                            startActivity(categoryIntent);
+                            finish();
                         }else
                         {
                             Toast.makeText(getApplicationContext(),"fail",Toast.LENGTH_LONG).show();

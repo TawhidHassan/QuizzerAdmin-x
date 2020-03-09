@@ -1,17 +1,24 @@
 package com.example.quizzeradminx;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Dialog;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.text.Layout;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import android.widget.Toolbar;
@@ -26,6 +33,8 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class CategoryActivity extends AppCompatActivity {
     private androidx.appcompat.widget.Toolbar toolbarx;
     RecyclerView recyclerView;
@@ -35,7 +44,10 @@ public class CategoryActivity extends AppCompatActivity {
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
 
-    Dialog loadingDialog;
+    Dialog loadingDialog,addcategoryDialog;
+    CircleImageView categoryImg;
+    EditText categoryName;
+    Button add;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -55,6 +67,7 @@ public class CategoryActivity extends AppCompatActivity {
         loadingDialog.getWindow().setBackgroundDrawable(getDrawable(R.drawable.rounded_corner_button));
         loadingDialog.getWindow().setLayout(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         loadingDialog.setCancelable(false);
+        setCategroyDialog();
 
 
         LinearLayoutManager layoutManager=new LinearLayoutManager(this);
@@ -103,10 +116,57 @@ public class CategoryActivity extends AppCompatActivity {
             finish();
         }else if (item.getItemId() == R.id.add)
         {
-            ///diloag show
-            Toast.makeText(getApplicationContext(),"done",Toast.LENGTH_LONG).show();
+            addcategoryDialog.show();
         }
         return super.onOptionsItemSelected(item);
+    }
+
+
+
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private void setCategroyDialog()
+    {
+        addcategoryDialog=new Dialog(this);
+        addcategoryDialog.setContentView(R.layout.add_category_dialog);
+        addcategoryDialog.getWindow().setLayout(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        addcategoryDialog.setCancelable(true);
+        categoryImg=addcategoryDialog.findViewById(R.id.categoryImgId);
+        add=addcategoryDialog.findViewById(R.id.saveBtnId);
+        categoryName=addcategoryDialog.findViewById(R.id.categoryNameId);
+
+        categoryImg.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent gallery=new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                startActivityForResult(gallery,101);
+
+            }
+        });
+        add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (categoryName.getText().toString().isEmpty())
+                {
+                    categoryName.setError("!Required");
+                    return;
+                }
+                addcategoryDialog.dismiss();
+                //upload data
+            }
+        });
+
+    }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode==101)
+        {
+            if (resultCode==RESULT_OK)
+            {
+                Uri image=data.getData();
+                categoryImg.setImageURI(image);
+            }
+        }
     }
 
 

@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="350dp"
+    android:background="@color/colorAccent"
+    android:layout_height="wrap_content">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/categoryImgId"
+        android:layout_width="85dp"
+        android:layout_height="85dp"
+        app:civ_border_width="2dp"
+        app:civ_border_color="@android:color/darker_gray"
+        android:src="@drawable/placeholder"
+        android:scaleType="centerCrop"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="16dp"
+        />
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tap above to select your image"
+        android:textColor="@android:color/black"
+        android:textAlignment="center"
+        />
+    <EditText
+        android:id="@+id/categoryNameId"
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:ems="10"
+        android:layout_margin="16dp"
+        android:inputType="textPersonName"
+        android:hint="Name"
+        android:padding="8dp"
+        android:textColor="@android:color/black"
+        android:textColorHint="@color/colorPrimary"
+        android:background="@drawable/rounded_box"
+        android:backgroundTint="@color/colorAccent"
+        android:elevation="1dp"
+        />
+    <Button
+        android:id="@+id/saveBtnId"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:text="save"
+        android:background="@drawable/rounded_box"
+        android:elevation="1dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_margin="10dp"
+        />
+</LinearLayout>

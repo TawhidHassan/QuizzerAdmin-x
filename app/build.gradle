@@ -42,5 +42,8 @@ dependencies {
 
     //    realtime databade
     implementation 'com.google.firebase:firebase-database:19.2.1'
+
+    //storage
+    implementation 'com.google.firebase:firebase-storage:19.1.1'
 }
 apply plugin: 'com.google.gms.google-services'

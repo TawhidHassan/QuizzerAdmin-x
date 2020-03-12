@@ -24,14 +24,22 @@ import android.widget.Toast;
 import android.widget.Toolbar;
 
 
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -40,6 +48,7 @@ public class CategoryActivity extends AppCompatActivity {
     RecyclerView recyclerView;
 
     List<CategoryModel>categoryModelList;
+    CategoryAdapter adapter;
     // Write a message to the database
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
@@ -48,6 +57,8 @@ public class CategoryActivity extends AppCompatActivity {
     CircleImageView categoryImg;
     EditText categoryName;
     Button add;
+    Uri image;
+    String dwonloadUrl;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -76,7 +87,7 @@ public class CategoryActivity extends AppCompatActivity {
 
         categoryModelList=new ArrayList<>();
 
-        final CategoryAdapter adapter=new CategoryAdapter(categoryModelList);
+        adapter=new CategoryAdapter(categoryModelList);
         recyclerView.setAdapter(adapter);
 
         loadingDialog.show();
@@ -150,8 +161,14 @@ public class CategoryActivity extends AppCompatActivity {
                     categoryName.setError("!Required");
                     return;
                 }
+                if(image==null)
+                {
+                    Toast.makeText(getApplicationContext(),"Please select one image for category",Toast.LENGTH_LONG).show();
+                    return;
+                }
                 addcategoryDialog.dismiss();
                 //upload data
+                uploadData();
             }
         });
 
@@ -163,10 +180,81 @@ public class CategoryActivity extends AppCompatActivity {
         {
             if (resultCode==RESULT_OK)
             {
-                Uri image=data.getData();
+                 image=data.getData();
                 categoryImg.setImageURI(image);
             }
         }
+    }
+
+    //upload image
+    private void uploadData()
+    {
+        loadingDialog.show();
+        StorageReference storageReference= FirebaseStorage.getInstance().getReference();
+        final StorageReference imageReferance=storageReference.child("categories").child(image.getLastPathSegment());
+
+        UploadTask uploadTask = imageReferance.putFile(image);
+        Task<Uri> urlTask = uploadTask.continueWithTask(new Continuation<UploadTask.TaskSnapshot, Task<Uri>>() {
+            @Override
+            public Task<Uri> then(@NonNull Task<UploadTask.TaskSnapshot> task) throws Exception {
+                if (!task.isSuccessful()) {
+                    throw task.getException();
+                }
+
+                // Continue with the task to get the download URL
+                return imageReferance.getDownloadUrl().addOnCompleteListener(new OnCompleteListener<Uri>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Uri> task) {
+                        if (task.isSuccessful())
+                        {
+                            dwonloadUrl=task.getResult().toString();
+                            uploadCategoryName();
+                        }else
+                        {
+                            loadingDialog.dismiss();
+                            Toast.makeText(getApplicationContext(),"Some thing is wrong",Toast.LENGTH_LONG).show();
+                        }
+                    }
+                });
+            }
+        }).addOnCompleteListener(new OnCompleteListener<Uri>() {
+            @Override
+            public void onComplete(@NonNull Task<Uri> task) {
+                if (task.isSuccessful()) {
+                    Uri downloadUri = task.getResult();
+                } else {
+                    // Handle failures
+                    Toast.makeText(getApplicationContext(),"Some thing is wrong",Toast.LENGTH_LONG).show();
+                    loadingDialog.dismiss();
+                }
+            }
+        });
+
+    }
+
+    private void uploadCategoryName()
+    {
+        Map<String ,Object> map=new HashMap<>();
+        map.put("name",categoryName.getText().toString());
+        map.put("sets",0);
+        map.put("url",dwonloadUrl);
+
+        FirebaseDatabase database=FirebaseDatabase.getInstance();
+        database.getReference().child("categories").child("category"+(categoryModelList.size()+1)).setValue(map).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                if (task.isSuccessful())
+                {
+                    categoryModelList.add(new CategoryModel(categoryName.getText().toString(),0,dwonloadUrl));
+                    adapter.notifyDataSetChanged();
+
+
+                }else{
+                    Toast.makeText(getApplicationContext(),"Some thing is wrong",Toast.LENGTH_LONG).show();
+                }
+                loadingDialog.dismiss();
+            }
+        });
     }
 
 

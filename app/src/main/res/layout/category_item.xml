@@ -27,4 +27,12 @@
         android:padding="8dp"
         android:layout_weight="1"
         />
+    <ImageButton
+        android:id="@+id/deleteBtnId"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/delete"
+        android:layout_gravity="center"
+        android:background="@android:color/transparent"
+        />
 </LinearLayout>

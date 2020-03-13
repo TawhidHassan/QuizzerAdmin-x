@@ -87,7 +87,27 @@ public class CategoryActivity extends AppCompatActivity {
 
         categoryModelList=new ArrayList<>();
 
-        adapter=new CategoryAdapter(categoryModelList);
+        adapter=new CategoryAdapter(categoryModelList, new CategoryAdapter.DeleteListener() {
+            @Override
+            public void onDelete(String key, final int position) {
+                loadingDialog.show();
+                myRef.child("categories").child(key).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        if (task.isSuccessful())
+                        {
+                            categoryModelList.remove(position);
+                            adapter.notifyDataSetChanged();
+                        }else
+                        {
+                            Toast.makeText(CategoryActivity.this,"faild to delete",Toast.LENGTH_LONG).show();
+
+                        }
+                        loadingDialog.dismiss();
+                    }
+                });
+            }
+        });
         recyclerView.setAdapter(adapter);
 
         loadingDialog.show();
@@ -96,7 +116,7 @@ public class CategoryActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren())
                 {
-                    categoryModelList.add(dataSnapshot1.getValue(CategoryModel.class));
+                    categoryModelList.add(new CategoryModel(dataSnapshot1.child("name").getValue().toString(),Integer.parseInt(dataSnapshot1.child("sets").getValue().toString()),dataSnapshot1.child("url").getValue().toString(),dataSnapshot1.getKey()));
                     //why we use CatehoryModel.class
                     //because .>>>amara category model a direct firebase ar cildren name gyula use korsi tai aikhana just category model call korlai hoba.
                     //ar jodi firebase ar direct name use na kortam tahola amadar alada alada vaba model diya data nita hoto
@@ -240,12 +260,12 @@ public class CategoryActivity extends AppCompatActivity {
         map.put("url",dwonloadUrl);
 
         FirebaseDatabase database=FirebaseDatabase.getInstance();
-        database.getReference().child("categories").child("category"+(categoryModelList.size()+1)).setValue(map).addOnCompleteListener(new OnCompleteListener<Void>() {
+        database.getReference().child("categories").child("category"+(categoryModelList.size()+ 1)).setValue(map).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
                 if (task.isSuccessful())
                 {
-                    categoryModelList.add(new CategoryModel(categoryName.getText().toString(),0,dwonloadUrl));
+                    categoryModelList.add(new CategoryModel(categoryName.getText().toString(),0,dwonloadUrl,"category"+(categoryModelList.size()+ 1)));
                     adapter.notifyDataSetChanged();
 
 

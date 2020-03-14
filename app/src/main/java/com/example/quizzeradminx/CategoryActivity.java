@@ -3,11 +3,13 @@ package com.example.quizzeradminx;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -89,23 +91,35 @@ public class CategoryActivity extends AppCompatActivity {
 
         adapter=new CategoryAdapter(categoryModelList, new CategoryAdapter.DeleteListener() {
             @Override
-            public void onDelete(String key, final int position) {
-                loadingDialog.show();
-                myRef.child("categories").child(key).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
-                    @Override
-                    public void onComplete(@NonNull Task<Void> task) {
-                        if (task.isSuccessful())
-                        {
-                            categoryModelList.remove(position);
-                            adapter.notifyDataSetChanged();
-                        }else
-                        {
-                            Toast.makeText(CategoryActivity.this,"faild to delete",Toast.LENGTH_LONG).show();
+            public void onDelete(final String key, final int position) {
 
-                        }
-                        loadingDialog.dismiss();
-                    }
-                });
+                new AlertDialog.Builder(CategoryActivity.this,R.style.Theme_AppCompat_Light_Dialog)
+                        .setTitle("Delete Category")
+                        .setMessage("Are you sure to delete this category")
+                        .setPositiveButton("yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                loadingDialog.show();
+                                myRef.child("categories").child(key).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if (task.isSuccessful())
+                                        {
+                                            categoryModelList.remove(position);
+                                            adapter.notifyDataSetChanged();
+                                        }else
+                                        {
+                                            Toast.makeText(CategoryActivity.this,"faild to delete",Toast.LENGTH_LONG).show();
+
+                                        }
+                                        loadingDialog.dismiss();
+                                    }
+                                });
+                            }
+                        })
+                        .setNegativeButton("No",null)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
             }
         });
         recyclerView.setAdapter(adapter);

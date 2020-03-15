@@ -10,18 +10,22 @@ import android.widget.TextView;
 
 public class GridAdapter extends BaseAdapter {
 
-    private int setes=0;
+    public int setes=0;
     private String category;
+    private GrideListener listener;
 
 
-    public GridAdapter(int setes, String category) {
+    public GridAdapter(int setes, String category,GrideListener listener) {
         this.setes = setes;
         this.category=category;
+        this.listener=listener;
     }
+
+
 
     @Override
     public int getCount() {
-        return setes;
+        return setes+1;
     }
 
     @Override
@@ -45,18 +49,33 @@ public class GridAdapter extends BaseAdapter {
         {
             view=convertView;
         }
+        if (position==0)
+        {
+            ((TextView)view.findViewById(R.id.setTextId)).setText("+");
+        }else
+        {
+            ((TextView)view.findViewById(R.id.setTextId)).setText(String.valueOf(position));
+        }
+
         view.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//
+                if (position==0)
+                {
+                    //add set code
+                    listener.addSet();
+                }else {
 //                Intent qusIntent=new Intent(parent.getContext(),MainActivity.class);
 //                qusIntent.putExtra("category",category);
 //                qusIntent.putExtra("setNo",position+1);
-//
 //                parent.getContext().startActivity(qusIntent);
+                }
             }
         });
-        ((TextView)view.findViewById(R.id.setTextId)).setText(String.valueOf(position+1));
         return view;
+    }
+
+    public interface GrideListener{
+        public void addSet();
     }
 }

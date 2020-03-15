@@ -105,14 +105,24 @@ public class CategoryActivity extends AppCompatActivity {
                                     public void onComplete(@NonNull Task<Void> task) {
                                         if (task.isSuccessful())
                                         {
-                                            categoryModelList.remove(position);
-                                            adapter.notifyDataSetChanged();
+                                            myRef.child("SETS").child(categoryModelList.get(position).getName()).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                @Override
+                                                public void onComplete(@NonNull Task<Void> task) {
+                                                    if (task.isSuccessful())
+                                                    {
+                                                        categoryModelList.remove(position);
+                                                        adapter.notifyDataSetChanged();
+                                                    }else {
+                                                        Toast.makeText(CategoryActivity.this,"faild to delete",Toast.LENGTH_LONG).show();
+                                                    }
+                                                    loadingDialog.dismiss();
+                                                }
+                                            });
                                         }else
                                         {
                                             Toast.makeText(CategoryActivity.this,"faild to delete",Toast.LENGTH_LONG).show();
-
+                                            loadingDialog.dismiss();
                                         }
-                                        loadingDialog.dismiss();
                                     }
                                 });
                             }
@@ -130,7 +140,10 @@ public class CategoryActivity extends AppCompatActivity {
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren())
                 {
-                    categoryModelList.add(new CategoryModel(dataSnapshot1.child("name").getValue().toString(),Integer.parseInt(dataSnapshot1.child("sets").getValue().toString()),dataSnapshot1.child("url").getValue().toString(),dataSnapshot1.getKey()));
+                    categoryModelList.add(new CategoryModel(dataSnapshot1.child("name").getValue().toString(),
+                            Integer.parseInt(dataSnapshot1.child("sets").getValue().toString()),
+                            dataSnapshot1.child("url").getValue().toString(),
+                            dataSnapshot1.getKey()));
                     //why we use CatehoryModel.class
                     //because .>>>amara category model a direct firebase ar cildren name gyula use korsi tai aikhana just category model call korlai hoba.
                     //ar jodi firebase ar direct name use na kortam tahola amadar alada alada vaba model diya data nita hoto

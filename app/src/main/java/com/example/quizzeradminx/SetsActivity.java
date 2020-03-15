@@ -52,7 +52,7 @@ public class SetsActivity extends AppCompatActivity {
             public void addSet() {
                 loadingDialog.show();
                 FirebaseDatabase database=FirebaseDatabase.getInstance();
-                database.getReference().child("Categories").child(getIntent().getStringExtra("key")).child("sets").setValue(getIntent().getIntExtra("sets", 0)+1)
+                database.getReference().child("categories").child(getIntent().getStringExtra("key")).child("sets").setValue(getIntent().getIntExtra("sets", 0)+1)
                         .addOnCompleteListener(new OnCompleteListener<Void>() {
                             @Override
                             public void onComplete(@NonNull Task<Void> task) {

@@ -65,10 +65,10 @@ public class GridAdapter extends BaseAdapter {
                     //add set code
                     listener.addSet();
                 }else {
-//                Intent qusIntent=new Intent(parent.getContext(),MainActivity.class);
-//                qusIntent.putExtra("category",category);
-//                qusIntent.putExtra("setNo",position+1);
-//                parent.getContext().startActivity(qusIntent);
+                Intent qusIntent=new Intent(parent.getContext(),QuestionsActivity.class);
+                qusIntent.putExtra("category",category);
+                qusIntent.putExtra("setNo",position+1);
+                parent.getContext().startActivity(qusIntent);
                 }
             }
         });

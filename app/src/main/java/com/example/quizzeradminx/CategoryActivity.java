@@ -208,6 +208,14 @@ public class CategoryActivity extends AppCompatActivity {
                     categoryName.setError("!Required");
                     return;
                 }
+                for (CategoryModel model:categoryModelList)
+                {
+                    if(categoryName.getText().toString().equals(model.getName()))
+                    {
+                       categoryName.setError("Already added this category!");
+                       return;
+                    }
+                }
                 if(image==null)
                 {
                     Toast.makeText(getApplicationContext(),"Please select one image for category",Toast.LENGTH_LONG).show();

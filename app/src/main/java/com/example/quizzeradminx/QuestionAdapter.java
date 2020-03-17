@@ -22,17 +22,17 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view= LayoutInflater.from(parent.getContext()).inflate(R.layout.activity_questions,parent,false);
+        View  view= LayoutInflater.from(parent.getContext()).inflate(R.layout.question_item,parent,false);
 
         return new ViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        String question=questionModelList.get(position).getQuestion();
-        String answer=questionModelList.get(position).getAnswer();
+        String questionx=questionModelList.get(position).getQuestion();
+        String answerx=questionModelList.get(position).getAnswer();
 
-        holder.setData(question,answer,position);
+        holder.setData(questionx,answerx,position);
     }
 
     @Override
@@ -51,10 +51,10 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
             answer=itemView.findViewById(R.id.answerId);
         }
 
-        private void setData(String question,String answer,int position)
+        private void setData(String questionX,String answerX,int position)
         {
-            this.question.setText(position+1+" "+question);
-            this.answer.setText("Ans:"+" "+answer);
+            this.question.setText((position+1)+" "+questionX);
+            this.answer.setText("Ans:"+" "+answerX);
         }
     }
 }

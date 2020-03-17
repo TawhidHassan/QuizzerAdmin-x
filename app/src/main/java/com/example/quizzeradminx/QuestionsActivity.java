@@ -23,14 +23,14 @@ public class QuestionsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_questions);
 
-        recyclerView=findViewById(R.id.categoryRecyclerViewId);
+        recyclerView=findViewById(R.id.questionsRecyclerViewId);
         addBtn = findViewById(R.id.addBtnId);
         excelbtn = findViewById(R.id.excelBtnId);
         toolbarx = findViewById(R.id.toolbarId);
         setSupportActionBar(toolbarx);
         String categoryname=getIntent().getStringExtra("category");
         int setno=getIntent().getIntExtra("setNo",1);
-        getSupportActionBar().setTitle(categoryname+"/set :"+setno);
+        getSupportActionBar().setTitle(categoryname+"/set :"+(setno-1));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         LinearLayoutManager layoutManager=new LinearLayoutManager(this);

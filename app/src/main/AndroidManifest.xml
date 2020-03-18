@@ -12,7 +12,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".QuestionsActivity"></activity>
+        <activity android:name=".AddQuestionActivity"></activity>
+        <activity android:name=".QuestionsActivity" />
         <activity android:name=".SetsActivity" />
         <activity android:name=".CategoryActivity" />
         <activity android:name=".MainActivity">

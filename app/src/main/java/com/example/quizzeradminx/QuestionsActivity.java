@@ -30,7 +30,7 @@ public class QuestionsActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     Button addBtn,excelbtn;
     private QuestionAdapter adapter;
-    List<QuestionModel>list;
+    public static List<QuestionModel>list;
 
     Dialog loadingDialog;
 
@@ -120,6 +120,12 @@ public class QuestionsActivity extends AppCompatActivity {
                         finish();
                     }
                 });
+    }
 
+    //when data upload in server refresh the recyclerview
+    @Override
+    protected void onStart() {
+        super.onStart();
+        adapter.notifyDataSetChanged();
     }
 }

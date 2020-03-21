@@ -35,6 +35,11 @@ public class AddQuestionActivity extends AppCompatActivity {
 
     private String categoryName;
     int setNo;
+    int position;
+    String id;
+
+    private QuestionModel questionModel;
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @SuppressLint("WrongViewCast")
     @Override
@@ -56,10 +61,17 @@ public class AddQuestionActivity extends AppCompatActivity {
 
         categoryName=getIntent().getStringExtra("categoryName");
         setNo=getIntent().getIntExtra("setNo",-1);
+        position=getIntent().getIntExtra("position",-1);
         if (setNo==-1)
         {
             finish();
             return;
+        }
+
+        if (position!=-1)
+        {
+            questionModel=QuestionsActivity.list.get(position);
+            setData();
         }
 
         uploadBtn.setOnClickListener(new View.OnClickListener() {
@@ -112,7 +124,14 @@ public class AddQuestionActivity extends AppCompatActivity {
         map.put("question",question.getText().toString());
         map.put("setNo",setNo);
 
-        final String id=UUID.randomUUID().toString();
+        if (position!=-1)
+        {
+            id=questionModel.getId();
+        }else
+        {
+            id=UUID.randomUUID().toString();
+        }
+
 
         loadingDialog.show();
         FirebaseDatabase.getInstance().getReference()
@@ -130,7 +149,13 @@ public class AddQuestionActivity extends AppCompatActivity {
                             map.get("optionD").toString(),
                             map.get("correctAns").toString(),
                             setNo);
-                    QuestionsActivity.list.add(questionModel);
+
+                    if (position!=-1)
+                    {
+                        QuestionsActivity.list.set(position,questionModel);
+                    }else {
+                        QuestionsActivity.list.add(questionModel);
+                    }
                     finish();
                 }else
                 {
@@ -140,6 +165,28 @@ public class AddQuestionActivity extends AppCompatActivity {
                 loadingDialog.dismiss();
             }
         });
+
+    }
+
+
+    //when edit the question auto maticaly set the data on editText filed
+    private void setData()
+    {
+        question.setText(questionModel.getQuestion());
+        ((EditText)answers.getChildAt(0)).setText(questionModel.getA());
+        ((EditText)answers.getChildAt(1)).setText(questionModel.getB());
+        ((EditText)answers.getChildAt(2)).setText(questionModel.getC());
+        ((EditText)answers.getChildAt(3)).setText(questionModel.getD());
+
+        for (int i=0;i<answers.getChildCount();i++)
+        {
+            if (((EditText)answers.getChildAt(i)).getText().equals(questionModel.getAnswer()))
+            {
+                RadioButton radioButton= (RadioButton) options.getChildAt(i);
+                radioButton.setChecked(true);
+                break;
+            }
+        }
 
     }
 }

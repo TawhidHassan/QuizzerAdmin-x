@@ -63,7 +63,7 @@ public class QuestionsActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
 
         list=new ArrayList<>();
-        adapter=new QuestionAdapter(list);
+        adapter=new QuestionAdapter(list,categoryname);
         recyclerView.setAdapter(adapter);
         //get all question from firebase
         getdata(categoryname,setno);

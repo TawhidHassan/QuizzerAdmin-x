@@ -1,15 +1,21 @@
 package com.example.quizzeradminx;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.Manifest;
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
@@ -118,8 +124,78 @@ public class QuestionsActivity extends AppCompatActivity {
                 startActivity(addQuestionIntent);
             }
         });
+        excelbtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (ActivityCompat.checkSelfPermission(QuestionsActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE)== PackageManager.PERMISSION_GRANTED)
+                {
+                    selectFile();
+                }else {
+                    ActivityCompat.requestPermissions(QuestionsActivity.this,new String[]{Manifest.permission.READ_EXTERNAL_STORAGE},101);
+                }
+            }
+        });
 
     }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode==101)
+        {
+            if (grantResults[0]==PackageManager.PERMISSION_GRANTED)
+            {
+                selectFile();
+            }else
+            {
+                Toast.makeText(getApplicationContext(),"please grant permission",Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    private void selectFile()
+    {
+
+        String[] mimeTypes =
+                {"image/*","application/pdf","application/msword","application/vnd.ms-powerpoint","application/vnd.ms-excel","text/plain"};
+
+        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            intent.setType(mimeTypes.length == 1 ? mimeTypes[0] : "*/*");
+            if (mimeTypes.length > 0) {
+                intent.putExtra(Intent.EXTRA_MIME_TYPES, mimeTypes);
+            }
+        } else {
+            String mimeTypesStr = "";
+            for (String mimeType : mimeTypes) {
+                mimeTypesStr += mimeType + "|";
+            }
+            intent.setType(mimeTypesStr.substring(0,mimeTypesStr.length() - 1));
+        }
+        startActivityForResult(Intent.createChooser(intent,"select file"),102);
+
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == requestCode  && resultCode == RESULT_OK && null != data)
+            {
+                String FileName = data.getData().getLastPathSegment();
+                String FilePath = data.getData().getPath();
+                if(FilePath.endsWith(".xlsx"))
+                {
+                    Toast.makeText(getApplicationContext(),"file was selected",Toast.LENGTH_LONG).show();
+                }else
+                {
+                    Toast.makeText(getApplicationContext(),"file is not match",Toast.LENGTH_LONG).show();
+
+                }
+
+            }
+        }
 
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (item.getItemId() == android.R.id.home) {

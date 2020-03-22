@@ -16,10 +16,12 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
 
     private List<QuestionModel>questionModelList;
     private String categoryName;
+    private DeleteListenerQs listenerQs;
 
-    public QuestionAdapter(List<QuestionModel> questionModelList,String categoryName) {
+    public QuestionAdapter(List<QuestionModel> questionModelList,String categoryName,DeleteListenerQs listenerQs) {
         this.questionModelList = questionModelList;
         this.categoryName = categoryName;
+        this.listenerQs = listenerQs;
     }
 
     @NonNull
@@ -69,6 +71,18 @@ public class QuestionAdapter extends RecyclerView.Adapter<QuestionAdapter.ViewHo
                     itemView.getContext().startActivity(editIntent);
                 }
             });
+
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    listenerQs.onLongClick(position,questionModelList.get(position).getId());
+                    return false;
+                }
+            });
         }
+    }
+
+    public interface DeleteListenerQs{
+        void onLongClick(int position,String id);
     }
 }

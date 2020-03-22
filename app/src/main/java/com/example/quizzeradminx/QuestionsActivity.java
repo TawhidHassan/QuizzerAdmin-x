@@ -2,11 +2,13 @@ package com.example.quizzeradminx;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,8 +19,11 @@ import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
@@ -33,6 +38,8 @@ public class QuestionsActivity extends AppCompatActivity {
     public static List<QuestionModel>list;
 
     Dialog loadingDialog;
+    FirebaseDatabase database = FirebaseDatabase.getInstance();
+    DatabaseReference myRef = database.getReference();
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -40,10 +47,11 @@ public class QuestionsActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_questions);
 
+        toolbarx = findViewById(R.id.toolbarId);
         recyclerView=findViewById(R.id.questionsRecyclerViewId);
         addBtn = findViewById(R.id.addBtnId);
         excelbtn = findViewById(R.id.excelBtnId);
-        toolbarx = findViewById(R.id.toolbarId);
+
 
         loadingDialog=new Dialog(this);
         loadingDialog.setContentView(R.layout.loading);
@@ -63,7 +71,39 @@ public class QuestionsActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(layoutManager);
 
         list=new ArrayList<>();
-        adapter=new QuestionAdapter(list,categoryname);
+        adapter=new QuestionAdapter(list, categoryname, new QuestionAdapter.DeleteListenerQs() {
+            @Override
+            public void onLongClick(final int position, final String id) {
+                new AlertDialog.Builder(QuestionsActivity.this,R.style.Theme_AppCompat_Light_Dialog)
+                        .setTitle("Delete Question")
+                        .setMessage("Are you sure to delete this question")
+                        .setPositiveButton("yes", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                loadingDialog.show();
+                                myRef.child("SETES").child(categoryname).child("questions").child(id).removeValue().addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        if (task.isSuccessful())
+                                        {
+                                            list.remove(position);
+                                            adapter.notifyItemRemoved(position);
+                                            Toast.makeText(QuestionsActivity.this,"question is delete",Toast.LENGTH_LONG).show();
+                                        }else
+                                        {
+                                            Toast.makeText(QuestionsActivity.this,"faild to delete",Toast.LENGTH_LONG).show();
+                                            loadingDialog.dismiss();
+                                        }
+                                        loadingDialog.dismiss();
+                                    }
+                                });
+                            }
+                        })
+                        .setNegativeButton("No",null)
+                        .setIcon(android.R.drawable.ic_dialog_alert)
+                        .show();
+            }
+        });
         recyclerView.setAdapter(adapter);
         //get all question from firebase
         getdata(categoryname,setno);
@@ -128,4 +168,5 @@ public class QuestionsActivity extends AppCompatActivity {
         super.onStart();
         adapter.notifyDataSetChanged();
     }
+
 }

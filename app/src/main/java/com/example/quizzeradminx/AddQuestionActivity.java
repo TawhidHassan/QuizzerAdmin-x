@@ -8,6 +8,7 @@ import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -37,6 +38,7 @@ public class AddQuestionActivity extends AppCompatActivity {
     int setNo;
     int position;
     String id;
+    private androidx.appcompat.widget.Toolbar toolbarx;
 
     private QuestionModel questionModel;
 
@@ -46,6 +48,11 @@ public class AddQuestionActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_question);
+
+        toolbarx = findViewById(R.id.toolbarId);
+        setSupportActionBar(toolbarx);
+        getSupportActionBar().setTitle("Add question");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         loadingDialog=new Dialog(this);
         loadingDialog.setContentView(R.layout.loading);
@@ -180,7 +187,7 @@ public class AddQuestionActivity extends AppCompatActivity {
 
         for (int i=0;i<answers.getChildCount();i++)
         {
-            if (((EditText)answers.getChildAt(i)).getText().equals(questionModel.getAnswer()))
+            if (((EditText)answers.getChildAt(i)).getText().toString().equals(questionModel.getAnswer()))
             {
                 RadioButton radioButton= (RadioButton) options.getChildAt(i);
                 radioButton.setChecked(true);
@@ -188,5 +195,11 @@ public class AddQuestionActivity extends AppCompatActivity {
             }
         }
 
+    }
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            finish();
+        }
+        return super.onOptionsItemSelected(item);
     }
 }

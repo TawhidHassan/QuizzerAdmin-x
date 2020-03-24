@@ -16,13 +16,16 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -33,8 +36,27 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellValue;
+import org.apache.poi.ss.usermodel.FormulaEvaluator;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
+
+import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_BOOLEAN;
+import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_FORMULA;
+import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_NUMERIC;
+import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_STRING;
 
 public class QuestionsActivity extends AppCompatActivity {
     private androidx.appcompat.widget.Toolbar toolbarx;
@@ -46,6 +68,12 @@ public class QuestionsActivity extends AppCompatActivity {
     Dialog loadingDialog;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
+
+
+    public static final int CELL_COUNT=6;
+    private int setno;
+    String categoryname;
+    TextView loadingText;
 
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
@@ -64,11 +92,11 @@ public class QuestionsActivity extends AppCompatActivity {
         loadingDialog.getWindow().setBackgroundDrawable(getDrawable(R.drawable.rounded_corner_button));
         loadingDialog.getWindow().setLayout(LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
         loadingDialog.setCancelable(false);
-
+        loadingText=loadingDialog.findViewById(R.id.lodingTextId);
 
         setSupportActionBar(toolbarx);
-        final String categoryname=getIntent().getStringExtra("category");
-        final int setno=getIntent().getIntExtra("setNo",1);
+        categoryname=getIntent().getStringExtra("category");
+        setno=getIntent().getIntExtra("setNo",1);
         getSupportActionBar().setTitle(categoryname+"/set :"+setno);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
@@ -188,6 +216,7 @@ public class QuestionsActivity extends AppCompatActivity {
                 if(FilePath.endsWith(".xlsx"))
                 {
                     Toast.makeText(getApplicationContext(),"file was selected",Toast.LENGTH_LONG).show();
+                    readFile(data.getData());
                 }else
                 {
                     Toast.makeText(getApplicationContext(),"file is not match",Toast.LENGTH_LONG).show();
@@ -195,6 +224,175 @@ public class QuestionsActivity extends AppCompatActivity {
                 }
 
             }
+        }
+
+        private void readFile(final Uri fileUri)
+        {
+            loadingText.setText("Scaning questions");
+            loadingDialog.show();
+
+            AsyncTask.execute(new Runnable() {
+                @Override
+                public void run() {
+
+
+            //parent map
+            final HashMap<String ,Object>parentMap=new HashMap<>();
+            final List<QuestionModel>tempuraryList=new ArrayList<>();
+            try {
+                InputStream inputStream=getContentResolver().openInputStream(fileUri);
+                XSSFWorkbook workbook=new XSSFWorkbook(inputStream);
+                XSSFSheet sheet=workbook.getSheetAt(0);
+                FormulaEvaluator formulaEvaluator=workbook.getCreationHelper().createFormulaEvaluator();
+
+                int rowsCount=sheet.getPhysicalNumberOfRows();
+                if (rowsCount>0)
+                {
+
+                    for (int r=0;r<rowsCount;r++)
+                    {
+                        Row row=sheet.getRow(r);
+
+                        if (row.getPhysicalNumberOfCells()==CELL_COUNT)
+                        {
+                            String question=getcellData(row,0,formulaEvaluator);
+                            String a=getcellData(row,1,formulaEvaluator);
+                            String b=getcellData(row,2,formulaEvaluator);
+                            String c=getcellData(row,3,formulaEvaluator);
+                            String d=getcellData(row,4,formulaEvaluator);
+                            String correctAns=getcellData(row,5,formulaEvaluator);
+                            if (correctAns.equals(a)||correctAns.equals(b)||correctAns.equals(c)||correctAns.equals(d))
+                            {
+                                HashMap<String ,Object>questionMap=new HashMap<>();
+                                questionMap.put("correctAns",correctAns);
+                                questionMap.put("optionA",a);
+                                questionMap.put("optionB",b);
+                                questionMap.put("optionC",c);
+                                questionMap.put("optionD",d);
+                                questionMap.put("question",question);
+                                questionMap.put("setNo",setno);
+
+                                //rando id for firebase where question ar uploaded
+                                String id= UUID.randomUUID().toString();
+                                parentMap.put(id,questionMap);
+                                tempuraryList.add(new QuestionModel(id,question,a,b,c,d,correctAns,setno));
+
+
+                            }else
+                            {
+                                final int finalR = r;
+                                runOnUiThread(new Runnable() {
+                                   @Override
+                                   public void run() {
+                                       loadingText.setText("Loading...");
+                                       loadingDialog.dismiss();
+                                       Toast.makeText(getApplicationContext(),"Row number" +(finalR +1)+ "has no correct option",Toast.LENGTH_LONG).show();
+                                   }
+                               });
+
+                                return;
+                            }
+                        }else
+                        {
+                            final int finalR1 = r;
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    loadingText.setText("Loading...");
+                                    loadingDialog.dismiss();
+                                    Toast.makeText(getApplicationContext(),"Row number" +(finalR1 +1)+ "has incorrect data",Toast.LENGTH_LONG).show();
+                                }
+                            });
+                            return;
+                        }
+                    }
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            loadingText.setText("Uploading...");
+                            //queary
+                            FirebaseDatabase.getInstance().getReference()
+                                    .child("SETES").child(categoryname)
+                                    .child("questions").updateChildren(parentMap)
+                                    .addOnCompleteListener(new OnCompleteListener<Void>() {
+                                        @Override
+                                        public void onComplete(@NonNull Task<Void> task) {
+                                            if (task.isSuccessful())
+                                            {
+                                                list.addAll(tempuraryList);
+                                                adapter.notifyDataSetChanged();
+                                            }else
+                                            {
+                                                loadingText.setText("Loading...");
+                                                loadingDialog.dismiss();
+                                                Toast.makeText(getApplicationContext(),"Someting is wrong",Toast.LENGTH_LONG).show();
+                                            }
+
+                                            loadingDialog.dismiss();
+                                        }
+                                    });
+                        }
+                    });
+
+                }else
+                {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            loadingText.setText("Loading...");
+                            loadingDialog.dismiss();
+                            Toast.makeText(getApplicationContext(),"file is empty",Toast.LENGTH_LONG).show();
+                        }
+                    });
+                    return;
+                }
+
+            } catch (final FileNotFoundException e) {
+                e.printStackTrace();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        loadingText.setText("Loading...");
+                        loadingDialog.dismiss();
+                        Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
+                    }
+                });
+
+
+            } catch (final IOException e) {
+                e.printStackTrace();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        loadingText.setText("Loading...");
+                        loadingDialog.dismiss();
+                        Toast.makeText(getApplicationContext(),e.getMessage(),Toast.LENGTH_LONG).show();
+                    }
+                });
+
+            }
+                }
+            });
+
+        }
+
+        private String  getcellData(Row row,int cellPosition,FormulaEvaluator formulaEvaluator)
+        {
+            String value="";
+            Cell cell=row.getCell(cellPosition);
+            switch (cell.getCellType())
+            {
+                case CELL_TYPE_BOOLEAN:
+                return value+cell.getBooleanCellValue();
+                case CELL_TYPE_NUMERIC:
+                    return value+cell.getNumericCellValue();
+                case CELL_TYPE_STRING:
+                    return value+cell.getStringCellValue();
+                default:
+                    return value;
+            }
+
         }
 
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {

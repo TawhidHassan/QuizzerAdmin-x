@@ -72,10 +72,26 @@ public class GridAdapter extends BaseAdapter {
                 }
             }
         });
+
+        view.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                if (position!=0)
+                {
+                    listener.onLongClick(position);
+                }
+                return false;
+            }
+        });
+
         return view;
     }
 
     public interface GrideListener{
         public void addSet();
+
+        public void onLongClick(int setNo);
     }
+
+
 }

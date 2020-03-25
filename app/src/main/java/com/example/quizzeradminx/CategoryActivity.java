@@ -29,6 +29,7 @@ import android.widget.Toolbar;
 import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -175,6 +176,24 @@ public class CategoryActivity extends AppCompatActivity {
         }else if (item.getItemId() == R.id.add)
         {
             addcategoryDialog.show();
+        }else if (item.getItemId() == R.id.logout)
+        {
+            new AlertDialog.Builder(CategoryActivity.this,R.style.Theme_AppCompat_Light_Dialog)
+                    .setTitle("Delete Question")
+                    .setMessage("Are you sure to Logou")
+                    .setPositiveButton("yes", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            loadingDialog.show();
+                            FirebaseAuth.getInstance().signOut();
+                            Intent intent=new Intent(getApplicationContext(),MainActivity.class);
+                            startActivity(intent);
+                            finish();
+                        }
+                    })
+                    .setNegativeButton("No",null)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();
         }
         return super.onOptionsItemSelected(item);
     }
